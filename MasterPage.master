@@ -1,0 +1,163 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeFile="MasterPage.master.cs" Inherits="MasterPage" %>
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head id="Head1" runat="server">
+    <title></title>
+    <link href="Style.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?sensor=false&amp;language=iw"></script>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&sensor=false&amp;language=iw"></script>
+    <script src="Scripts/JScript.js" type="text/javascript"></script>
+    <asp:ContentPlaceHolder id="head" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+
+<div id="fb-root"></div>
+<script type="text/javascript" src="//connect.facebook.net/en_US/all.js"></script>
+<script type="text/javascript">
+    // Additional JS functions here
+
+    window.onload = function () {
+        FB.init({
+            appId: '243673205779223', // App ID
+            //channelUrl: '//localhost:1685/Tremps', // Channel File
+            status: true, // check login status
+            cookie: true, // enable cookies to allow the server to access the session
+            xfbml: true  // parse XFBML
+        });
+
+        FB.getLoginStatus(function (response) {
+            if (response.status === 'connected') {
+                // connected
+                UpdateUserPanel(response.authResponse.userID);
+                document.getElementById("<%=LoginLink.ClientID%>").style.visibility = "hidden";
+            }
+            else if (response.status === 'not_authorized') {
+                islogged.innerHTML = "false";
+                // not_authorized // show loginbtn
+
+
+            } else {
+                islogged.innerHTML = "false";
+                // not_logged_in- show loginbtn
+
+            }
+        });
+
+        // Additional init code here
+
+    };
+
+    function login() {
+        FB.login(function (response) {
+            if (response.authResponse) {
+                FB.api('/me', function (user) {
+                    UpdateUserPanel(user);
+                });
+            }
+        });
+    }
+
+    function logout() {
+        FB.logout(function (response) {
+            //window.location.href = "HomePage.aspx";
+            document.getElementById('<%=picturePanel.ClientID %>').src = 'images/default-user.png';
+            document.getElementById('<%=userIdHidden.ClientID %>').value = "";
+            document.getElementById('<%=userNameHidden.ClientID %>').value = "";
+            document.getElementById('<%=userEmailHidden.ClientID %>').value = "";
+            document.getElementById('<%=userGenderHidden.ClientID %>').value = "";
+            document.getElementById('<%=userPictureHidden.ClientID %>').value = "";
+            document.getElementById('<%=userPhoneHidden.ClientID %>').value = "";
+        });
+    }
+
+    function getUserInfofromDB(userID) {
+        document.getElementById('<%=userIdHidden.ClientID %>').value = userID;
+        __doPostBack("<%= button.ClientID %>", "");
+    }
+
+    function UpdateUserPanel(user) {
+        if (user.id != null) {
+            var nameLabel = document.getElementById('<%=userNameLabel.ClientID %>');
+            nameLabel.innerHTML = "<p>&nbsp שלום &nbsp" + user.name + "</p>";
+            document.getElementById('<%=picturePanel.ClientID %>').src = 'http://graph.facebook.com/' + user.id + '/picture?type=large';
+            document.getElementById('<%=userIdHidden.ClientID %>').value = user.id;
+            document.getElementById('<%=userNameHidden.ClientID %>').value = user.name;
+            document.getElementById('<%=userEmailHidden.ClientID %>').value = user.email;
+            document.getElementById('<%=userGenderHidden.ClientID %>').value = user.gender;
+            document.getElementById('<%=userPictureHidden.ClientID %>').value = user.picture;
+            document.getElementById('<%=userPhoneHidden.ClientID %>').value = user.phone;
+            __doPostBack("<%= button.ClientID %>", "");
+
+        }
+        else {
+            document.getElementById('<%=picturePanel.ClientID %>').src = 'images/default-user.png';
+            document.getElementById('<%=userIdHidden.ClientID %>').value = "";
+            document.getElementById('<%=userNameHidden.ClientID %>').value = "";
+            document.getElementById('<%=userEmailHidden.ClientID %>').value = "";
+            document.getElementById('<%=userGenderHidden.ClientID %>').value = "";
+            document.getElementById('<%=userPictureHidden.ClientID %>').value = "";
+            document.getElementById('<%=userPhoneHidden.ClientID %>').value = ""
+        }
+    }
+
+    // Load the SDK Asynchronously
+    (function (d) {
+        var js, id = 'facebook-jssdk', ref = d.getElementsByTagName('script')[0];
+        if (d.getElementById(id)) { return; }
+        js = d.createElement('script'); js.id = id; js.async = true;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        ref.parentNode.insertBefore(js, ref);
+    } (document));
+</script>
+
+
+  
+<div id="container">
+<form id="Form2" runat="server">
+<div id="headContainer">
+    <div id="leftHead"></div>
+    <div id="rightHead" style="display:inline-block">
+        <asp:Panel ID="userPanel" runat="server">
+           <asp:Image ID="picturePanel" runat="server" Width="168px" Height="168px" />
+            <asp:Label ID="userNameLabel" Text="שלום אורח"  CssClass="LoginLinkBtn" runat="server"></asp:Label>
+            <div>
+            <asp:LinkButton ID="LoginLink" CausesValidation="false" Visible="false" CssClass="LoginLinkBtn" PostBackUrl="~/Login.aspx" runat="server">התחבר</asp:LinkButton> 
+            <asp:LinkButton ID="logoutLink" CausesValidation="false" Visible="false" CssClass="LoginLinkBtn" PostBackUrl="~/Logout.aspx" runat="server">התנתק</asp:LinkButton> 
+            <asp:LinkButton ID="profileLink" CausesValidation="false" Visible="false"  CssClass="LoginLinkBtn" PostBackUrl="~/UserProfile.aspx" runat="server">לפרופיל</asp:LinkButton>
+           <div id="loginDiv" style="display:inline-block"><fb:login-button v="2" ispostback="true" scope="email,status_update" autologoutlink="true" onlogin="login()" ></fb:login-button></div>
+           </div>
+        </asp:Panel>
+    </div>
+</div>
+
+<div id="menu">
+    <a href="HomePage.aspx">ראשי</a> | <a href="SearchRide.aspx">חיפוש טרמפ</a> | <a href="RideOfferForm.aspx">הצעת טרמפ</a> | <a href="RideRequestForm.aspx">בקשת טרמפ</a> | 
+    <a href="MyTremps.aspx" id="myTrempsLink" runat="server">הטרמפים שלי</a> <a href="AdminPage.aspx" id="AdminPageLink" runat="server"> | דף מנהל</a> | <a href="RegularRegister.aspx">הרשמה</a>
+</div>
+
+
+
+    <div id="content">
+
+           <asp:ContentPlaceHolder id="ContentPlaceHolder1" runat="server">
+        
+           </asp:ContentPlaceHolder>
+           
+           <asp:TextBox ID="userIdHidden" Visible="false" runat="server"></asp:TextBox>
+           <asp:TextBox ID="userNameHidden" Visible="false" runat="server"></asp:TextBox>
+           <asp:TextBox ID="userEmailHidden" Visible="false" runat="server"></asp:TextBox>
+           <asp:TextBox ID="userGenderHidden" Visible="false" runat="server"></asp:TextBox>
+           <asp:TextBox ID="userPictureHidden" Visible="false" runat="server"></asp:TextBox>
+           <asp:TextBox ID="userPhoneHidden" Visible="false" runat="server"></asp:TextBox>
+          <asp:Button ID="button" Visible="false" runat="server" />
+    </div>
+
+<div id="bottom"></div>
+</form>
+</div>
+</body>
+</html>
